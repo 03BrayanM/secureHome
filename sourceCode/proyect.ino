@@ -68,7 +68,7 @@ void setupStateMachine()
 {
 	// Add transitions
 	stateMachine.AddTransition(Inicio, ConfigMenu, []() { return input == claveCorrecta; });
-  stateMachine.AddTransition(Inicio, Bloqueo, []() { return input == systemBlock; });
+    stateMachine.AddTransition(Inicio, Bloqueo, []() { return input == systemBlock; });
 
 	stateMachine.AddTransition(ConfigMenu, MonitorAmbiental, []() { return input == btnPress; });
 
@@ -76,14 +76,14 @@ void setupStateMachine()
 	stateMachine.AddTransition(MonitorAmbiental, MonitorEventos, []() { return input == time; });
 	stateMachine.AddTransition(MonitorAmbiental, Alarma, []() { return input == tempLightExceeded; });
 
-  stateMachine.AddTransition(MonitorEventos, ConfigMenu, []() { return input == btnPress; });
-  stateMachine.AddTransition(MonitorEventos, MonitorAmbiental, []() { return input == time; });
-  stateMachine.AddTransition(MonitorEventos, Alarma, []() { return input == hallExceeded; });  
+    stateMachine.AddTransition(MonitorEventos, ConfigMenu, []() { return input == btnPress; });
+    stateMachine.AddTransition(MonitorEventos, MonitorAmbiental, []() { return input == time; });
+    stateMachine.AddTransition(MonitorEventos, Alarma, []() { return input == hallExceeded; });  
 
-  stateMachine.AddTransition(Alarma, MonitorAmbiental, []() { return input == time; });
-  stateMachine.AddTransition(Alarma, Inicio, []() { return input == btnPress; });  
+    stateMachine.AddTransition(Alarma, MonitorAmbiental, []() { return input == time; });
+    stateMachine.AddTransition(Alarma, Inicio, []() { return input == btnPress; });  
 
-  stateMachine.AddTransition(Bloqueo, Inicio, []() { return input == time; });
+     stateMachine.AddTransition(Bloqueo, Inicio, []() { return input == time; });
 
 	// Add actions
 	stateMachine.SetOnEntering(Inicio, outputInicio);
