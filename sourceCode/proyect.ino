@@ -3,6 +3,7 @@
 #include <LiquidCrystal.h>
 //Include the keypad code
 #include <Keypad.h>
+#include <AsyncTaskLib.h>
 
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
@@ -31,7 +32,9 @@ const char password[6] = {'1','2','3','4','5','#'};
 char buffer[6];
 int counter = -1;
 char tryCounter=0;
-
+// definity task
+void alarma(void);
+AsyncTask taskAlarm(4000, true, alarma);
 
 // State Alias
 enum State
@@ -103,7 +106,7 @@ void setupStateMachine()
 
 void setup() 
 {
-	Serial.begin(9600);
+	Serial.begin(115200);
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   //About leds
@@ -259,4 +262,6 @@ void claCorrecta(){
   lcd.print("Clave correcta");
   digitalWrite(LED_GREEN,HIGH);
 }
-
+void alarma(){
+  
+}
