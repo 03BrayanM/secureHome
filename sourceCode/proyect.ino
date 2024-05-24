@@ -3,6 +3,8 @@
 #include <LiquidCrystal.h>
 //Include the keypad code
 #include <Keypad.h>
+#include "AsyncTaskLib.h"
+#include "DHT.h"
 
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
@@ -26,7 +28,20 @@ Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 #define  LED_RED 10
 #define  LED_GREEN 9
 #define  LED_BLUE 8 
-
+//Configuration for the sensors
+//Light
+const int pinLight = A0;
+int valueLight=0;
+//Hall
+const int pinHall = A1;
+int valueHall=0;
+//DHT
+#define DHTTYPE 11
+#define DHTPIN 38
+DHT dht(DHTPIN,DHTTYPE);
+float h = 0;
+float t = 0;
+//Configuration for the security
 const char password[6] = {'1','2','3','4','5','#'};
 char buffer[6];
 int counter = -1;
@@ -68,7 +83,7 @@ void setupStateMachine()
 {
 	// Add transitions
 	stateMachine.AddTransition(Inicio, ConfigMenu, []() { return input == claveCorrecta; });
-    stateMachine.AddTransition(Inicio, Bloqueo, []() { return input == systemBlock; });
+  stateMachine.AddTransition(Inicio, Bloqueo, []() { return input == systemBlock; });
 
 	stateMachine.AddTransition(ConfigMenu, MonitorAmbiental, []() { return input == btnPress; });
 
@@ -76,30 +91,42 @@ void setupStateMachine()
 	stateMachine.AddTransition(MonitorAmbiental, MonitorEventos, []() { return input == time; });
 	stateMachine.AddTransition(MonitorAmbiental, Alarma, []() { return input == tempLightExceeded; });
 
-    stateMachine.AddTransition(MonitorEventos, ConfigMenu, []() { return input == btnPress; });
-    stateMachine.AddTransition(MonitorEventos, MonitorAmbiental, []() { return input == time; });
-    stateMachine.AddTransition(MonitorEventos, Alarma, []() { return input == hallExceeded; });  
+  stateMachine.AddTransition(MonitorEventos, ConfigMenu, []() { return input == btnPress; });
+  stateMachine.AddTransition(MonitorEventos, MonitorAmbiental, []() { return input == time; });
+  stateMachine.AddTransition(MonitorEventos, Alarma, []() { return input == hallExceeded; });  
 
-    stateMachine.AddTransition(Alarma, MonitorAmbiental, []() { return input == time; });
-    stateMachine.AddTransition(Alarma, Inicio, []() { return input == btnPress; });  
+  stateMachine.AddTransition(Alarma, MonitorAmbiental, []() { return input == time; });
+  stateMachine.AddTransition(Alarma, Inicio, []() { return input == btnPress; });  
 
-     stateMachine.AddTransition(Bloqueo, Inicio, []() { return input == time; });
+   stateMachine.AddTransition(Bloqueo, Inicio, []() { return input == time; });
 
 	// Add actions
 	stateMachine.SetOnEntering(Inicio, outputInicio);
 	stateMachine.SetOnEntering(ConfigMenu, outputMenu);
 	stateMachine.SetOnEntering(MonitorAmbiental, outputMAmbiental);
 	stateMachine.SetOnEntering(Bloqueo, outputBloqueo);
-    stateMachine.SetOnEntering(Alarma, outputAlarma);
-    stateMachine.SetOnEntering(MonitorEventos, outputMEventos);
+  stateMachine.SetOnEntering(Alarma, outputAlarma);
+  stateMachine.SetOnEntering(MonitorEventos, outputMEventos);
 
+  void leavingAmbiental(void);
 	stateMachine.SetOnLeaving(Inicio, []() {Serial.println("Leaving Inicio"); });
 	stateMachine.SetOnLeaving(ConfigMenu, []() {Serial.println("Leaving Menu"); });
-	stateMachine.SetOnLeaving(MonitorAmbiental, []() {Serial.println("Leaving Ambiental"); });
+	stateMachine.SetOnLeaving(MonitorAmbiental, leavingAmbiental);
 	stateMachine.SetOnLeaving(Bloqueo, []() {Serial.println("Leaving Bloqueo"); });
-    stateMachine.SetOnLeaving(Alarma, []() {Serial.println("Leaving Alarma"); });
-    stateMachine.SetOnLeaving(MonitorEventos, []() {Serial.println("Leaving Eventos"); });
+  stateMachine.SetOnLeaving(Alarma, []() {Serial.println("Leaving Alarma"); });
+  stateMachine.SetOnLeaving(MonitorEventos, []() {Serial.println("Leaving Eventos"); });
 }
+//Tasks
+  void readLight(void);
+  void readTemp(void);
+  void readHum(void);
+  void readTime(void);
+  void printSensorsLcd(void);
+  AsyncTask taskLight(1000,true,readLight);
+  AsyncTask taskTemp(1000,true,readTemp);
+  AsyncTask taskHum(1000,true,readHum);
+  AsyncTask taskTime(10000,true,readTime);
+  AsyncTask taskPrintLcd(1000,true,printSensorsLcd);
 
 void setup() 
 {
@@ -125,11 +152,16 @@ void setup()
 
 void loop() 
 {
-	// Read user input
-	input = static_cast<Input>(readInput());
+	taskHum.Update();
+  taskLight.Update();
+	taskPrintLcd.Update();
+  taskTemp.Update();
+    
+
 
 	// Update State Machine
 	stateMachine.Update();
+  input = Input::unknown;
 }
 
 // Auxiliar function that reads the user input
@@ -179,20 +211,36 @@ void outputMAmbiental()
 	Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
 	Serial.println("                    X                                 ");
 	Serial.println();
+  taskLight.Start();
+  taskTemp.Start();
+  taskHum.Start();
+  taskPrintLcd.Start();
+  taskTime.SetIntervalMillis(7000);
+  taskTime.Start();
 }
+void leavingAmbiental(){
+  taskLight.Stop();
+  taskTemp.Stop();
+  taskHum.Stop();
+} 
 
 void outputBloqueo()
 {
 	Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
 	Serial.println("                               X                      ");
 	Serial.println();
-  //sisBloqueado();
+  sisBloqueado();
+  taskTime.SetIntervalMillis(10000);
+  taskTime.Start();
 }
 void outputAlarma()
 {
 	Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
 	Serial.println("                                         X            ");
 	Serial.println();
+
+  taskTime.SetIntervalMillis(7000);
+  taskTime.Start();
 }
 void outputMEventos()
 {
@@ -260,3 +308,39 @@ void claCorrecta(){
   digitalWrite(LED_GREEN,HIGH);
 }
 
+void readLight(){
+  valueLight = analogRead(pinLight);
+}
+void readTemp(){
+  t = dht.readTemperature();
+  if(isnan(t)){
+    Serial.println("Failed to read temperature");
+  }
+}
+void readHum(){
+  h = dht.readHumidity();
+  if(isnan(h)){
+    Serial.println("Failed to read temperature");
+  }
+}
+void readTime(void){
+  input = Input::time;
+}
+void printSensorsLcd(){
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("TEM:");
+  lcd.print(t);
+  //Print humidity  
+  lcd.setCursor(8,0);
+  lcd.print("HUM:");
+  lcd.print(h);
+  //Print light
+  lcd.setCursor(0,1);
+  lcd.print("LUZ:");
+  lcd.print(valueLight);
+  //Print Mag
+  lcd.setCursor(8,1);
+  lcd.print("MAG:");
+  lcd.print(valueHall);
+}
