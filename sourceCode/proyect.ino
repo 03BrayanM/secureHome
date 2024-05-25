@@ -32,15 +32,19 @@ Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 //Light
 const int pinLight = A0;
 int valueLight=0;
+int lightLimit = 20;
 //Hall
 const int pinHall = A1;
 int valueHall=0;
+int hallLimit = 0;
 //DHT
 #define DHTTYPE 11
 #define DHTPIN 38
 DHT dht(DHTPIN,DHTTYPE);
 float h = 0;
 float t = 0;
+float humLimit = 0;
+float tempLimit = 0;
 //Configuration for the security
 const char password[6] = {'1','2','3','4','5','#'};
 char buffer[6];
@@ -109,28 +113,37 @@ void setupStateMachine()
   stateMachine.SetOnEntering(MonitorEventos, outputMEventos);
 
   void leavingAmbiental(void);
+  void leavingEventos(void);
 	stateMachine.SetOnLeaving(Inicio, []() {Serial.println("Leaving Inicio"); });
 	stateMachine.SetOnLeaving(ConfigMenu, []() {Serial.println("Leaving Menu"); });
 	stateMachine.SetOnLeaving(MonitorAmbiental, leavingAmbiental);
 	stateMachine.SetOnLeaving(Bloqueo, []() {Serial.println("Leaving Bloqueo"); });
   stateMachine.SetOnLeaving(Alarma, []() {Serial.println("Leaving Alarma"); });
-  stateMachine.SetOnLeaving(MonitorEventos, []() {Serial.println("Leaving Eventos"); });
+  stateMachine.SetOnLeaving(MonitorEventos, leavingEventos);
 }
 //Tasks
   void readLight(void);
   void readTemp(void);
   void readHum(void);
   void readTime(void);
+  void readHall(void);
   void printSensorsLcd(void);
-  AsyncTask taskLight(1000,true,readLight);
-  AsyncTask taskTemp(1000,true,readTemp);
-  AsyncTask taskHum(1000,true,readHum);
-  AsyncTask taskTime(10000,true,readTime);
+  void printHallLcd(void);
+  void verifyTempLightLimits(void);
+  void verifyHallLimit(void);
+  AsyncTask taskReadLight(1000,true,readLight);
+  AsyncTask taskReadTemp(1000,true,readTemp);
+  AsyncTask taskReadHum(1000,true,readHum);
+  AsyncTask taskReadHall(1000,true,readHall);
+  AsyncTask taskSetTime(10000,true,readTime);
   AsyncTask taskPrintLcd(1000,true,printSensorsLcd);
+  AsyncTask taskPrintHallLcd(1000,true,printHallLcd);
+  AsyncTask taskTempLightLimits(1000,true,verifyTempLightLimits);
+  AsyncTask taskHallLimits(1000,true,verifyHallLimit);
 
 void setup() 
 {
-	Serial.begin(9600);
+	Serial.begin(9600); //115200
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   //About leds
@@ -152,13 +165,16 @@ void setup()
 
 void loop() 
 {
-	taskHum.Update();
-  taskLight.Update();
-	taskPrintLcd.Update();
-  taskTemp.Update();
-    
-
-
+  //input = static_cast<Input>(readInput());
+  //Updating tasks from Ambiental State
+	taskReadLight.Update();
+  taskReadTemp.Update();
+  taskReadHum.Update();
+  taskPrintLcd.Update();
+  //Updating tasks from Eventos State
+  taskReadHall.Update();
+  taskPrintHallLcd.Update();
+  taskHallLimits.Update(); 
 	// Update State Machine
 	stateMachine.Update();
   input = Input::unknown;
@@ -211,27 +227,30 @@ void outputMAmbiental()
 	Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
 	Serial.println("                    X                                 ");
 	Serial.println();
-  taskLight.Start();
-  taskTemp.Start();
-  taskHum.Start();
+  taskReadLight.Start();
+  taskReadTemp.Start();
+  taskReadHum.Start();
   taskPrintLcd.Start();
-  taskTime.SetIntervalMillis(7000);
-  taskTime.Start();
+  taskTempLightLimits.Start();
+  taskSetTime.SetIntervalMillis(7000);
+  taskSetTime.Start();
 }
 void leavingAmbiental(){
-  taskLight.Stop();
-  taskTemp.Stop();
-  taskHum.Stop();
-} 
-
+  taskReadLight.Stop();
+  taskReadTemp.Stop();
+  taskReadHum.Stop();
+  taskPrintLcd.Stop();
+  taskTempLightLimits.Stop();
+  taskSetTime.Stop();
+}
 void outputBloqueo()
 {
 	Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
 	Serial.println("                               X                      ");
 	Serial.println();
   sisBloqueado();
-  taskTime.SetIntervalMillis(10000);
-  taskTime.Start();
+  taskSetTime.SetIntervalMillis(10000);
+  taskSetTime.Start();
 }
 void outputAlarma()
 {
@@ -239,16 +258,26 @@ void outputAlarma()
 	Serial.println("                                         X            ");
 	Serial.println();
 
-  taskTime.SetIntervalMillis(7000);
-  taskTime.Start();
+  taskSetTime.SetIntervalMillis(7000);
+  taskSetTime.Start();
 }
 void outputMEventos()
 {
 	Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
 	Serial.println("                                                  X");
 	Serial.println();
+  taskReadHall.Start();
+  taskPrintHallLcd.Start();
+  taskHallLimits.Start();
+  taskSetTime.SetIntervalMillis(3000);
+  taskSetTime.Start();
 }
-
+void leavingEventos(){
+  taskReadHall.Stop();
+  taskPrintHallLcd.Stop();
+  taskHallLimits.Stop();
+  taskSetTime.Stop();
+}
 void seguridad(){
   while(tryCounter < 3){
     if(counter==-1){
@@ -311,6 +340,9 @@ void claCorrecta(){
 void readLight(){
   valueLight = analogRead(pinLight);
 }
+void readHall(){
+  valueHall = analogRead(pinHall);
+}
 void readTemp(){
   t = dht.readTemperature();
   if(isnan(t)){
@@ -327,6 +359,7 @@ void readTime(void){
   input = Input::time;
 }
 void printSensorsLcd(){
+  //Print temperature
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("TEM:");
@@ -343,4 +376,21 @@ void printSensorsLcd(){
   lcd.setCursor(8,1);
   lcd.print("MAG:");
   lcd.print(valueHall);
+}
+void printHallLcd(){
+  //Print hall
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("MAG:");
+  lcd.print(valueHall);
+}
+void verifyTempLightLimits(){
+  if(t > tempLimit && h > humLimit){
+    input = Input::tempLightExceeded;
+  }
+}
+void verifyHallLimit(){
+  if(valueHall > hallLimit){
+    input = Input::hallExceeded;
+  }
 }
