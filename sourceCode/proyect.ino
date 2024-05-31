@@ -390,130 +390,176 @@ LiquidMenu menu(lcd);
 
 #pragma region Functions for the menu
 /**
- * @brief fuction for increase value to the maximum temperature 
- * 
+ * @brief Function to increase the maximum temperature value.
  */
 void increase_tempHigh()
 {
-  if(tempHigh<50){
-  tempHigh += 1;
+  if(tempHigh < 50) {
+    tempHigh += 1;
   }
   menu.update();
 }
+
 /**
- * @brief fuction for decrease value to the minimum temperature 
- * 
+ * @brief Function to decrease the maximum temperature value.
  */
 void decrease_tempHigh()
 {
-  if(tempHigh>(tempLow+1)){
-  tempHigh -= 1;
+  if(tempHigh > (tempLow + 1)) {
+    tempHigh -= 1;
   }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the minimum temperature value.
+ */
 void increase_tempLow()
 {
-  if((tempLow+1)<tempHigh){
-  tempLow += 1;
+  if((tempLow + 1) < tempHigh) {
+    tempLow += 1;
   }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the minimum temperature value.
+ */
 void decrease_tempLow()
 {
-  if(tempLow>0){
-  tempLow -= 1;
-   }
-    menu.update();
+  if(tempLow > 0) {
+    tempLow -= 1;
+  }
+  menu.update();
 }
 
+/**
+ * @brief Function to increase the maximum light value.
+ */
 void increase_luzHigh()
 {
   luzHigh += 10;
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the maximum light value.
+ */
 void decrease_luzHigh()
 {
-  if((luzHigh+10)>luzLow)
-  luzHigh -= 10;
+  if((luzHigh - 10) > luzLow) {
+    luzHigh -= 10;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the minimum light value.
+ */
 void increase_luzLow()
 {
-  if((luzLow+10)<luzHigh){
-  luzLow += 10;
-   }
-    menu.update();
+  if((luzLow + 10) < luzHigh) {
+    luzLow += 10;
+  }
+  menu.update();
 }
 
+/**
+ * @brief Function to decrease the minimum light value.
+ */
 void decrease_luzLow()
 {
   luzLow -= 10;
   menu.update();
 }
 
+/**
+ * @brief Function to increase the maximum humidity value.
+ */
 void increase_humHigh()
 {
-  if(humHigh<80){
-  humHigh += 1;
+  if(humHigh < 80) {
+    humHigh += 1;
   }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the maximum humidity value.
+ */
 void decrease_humHigh()
 {
-  if((humHigh+1)>humLow){
-  humHigh -= 1;
+  if((humHigh - 1) > humLow) {
+    humHigh -= 1;
   }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the minimum humidity value.
+ */
 void increase_humLow()
 {
-  if((humLow+1)<humHigh){
-  humLow += 1;
+  if((humLow + 1) < humHigh) {
+    humLow += 1;
   }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the minimum humidity value.
+ */
 void decrease_humLow()
 {
-  if(humLow>20){
-  humLow -= 1;
- }
+  if(humLow > 20) {
+    humLow -= 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the maximum hall value.
+ */
 void increase_hallHigh()
 {
   hallHigh += 1;
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the maximum hall value.
+ */
 void decrease_hallHigh()
 {
-  if((hallHigh+1)>hallLow){
-  hallHigh -= 1;
-   }
-    menu.update();
+  if((hallHigh - 1) > hallLow) {
+    hallHigh -= 1;
+  }
+  menu.update();
 }
 
+/**
+ * @brief Function to increase the minimum hall value.
+ */
 void increase_hallLow()
 {
-  if((hallLow+1)<hallHigh){
-  hallLow += 1;
- } menu.update();
+  if((hallLow + 1) < hallHigh) {
+    hallLow += 1;
+  }
+  menu.update();
 }
 
+/**
+ * @brief Function to decrease the minimum hall value.
+ */
 void decrease_hallLow()
 {
   hallLow -= 1;
   menu.update();
 }
 
+/**
+ * @brief Function to reset all values to their default settings.
+ */
 void reset_values()
 {
   tempHigh = 30;
@@ -526,6 +572,12 @@ void reset_values()
   hallLow = 1;
   menu.update();
 }
+/**
+ * @brief Sets up the menu with function attachments and screen additions
+ * 
+ * This function initializes the menu by attaching various functions to specific menu lines
+ * and adding screens to the menu. It also initializes the LED state text.
+ */
 void setupMenu(){
   line1.attach_function(1, increase_tempHigh);
   line1.attach_function(2, decrease_tempHigh);
@@ -674,8 +726,11 @@ void outputBloqueo()
   taskMelodyFail.Start();
 }
 /**
- * @brief Function that runs when the machine enter to "Alarma" state
+ * @brief Function that runs when the machine enters the "Alarma" state
  * 
+ * This function is executed when the state machine transitions to the "Alarma" state.
+ * It prints the state menu to the serial monitor, starts tasks for playing a melody,
+ * turning on a blue light, setting a timer, and reading button inputs.
  */
 void outputAlarma()
 {
@@ -688,9 +743,14 @@ void outputAlarma()
   taskSetTime.Start();
   taskReadButton.Start();
 }
+
 /**
- * @brief Function that runs when the machine enter to "Monitor Eventos" state
+ * @brief Function that runs when the machine enters the "Monitor Eventos" state
  * 
+ * This function is executed when the state machine transitions to the "Monitor Eventos" state.
+ * It prints the state menu to the serial monitor, starts tasks for reading button inputs,
+ * reading the hall sensor, printing hall sensor values to the LCD, checking hall sensor limits,
+ * and setting a timer.
  */
 void outputMEventos()
 {
@@ -705,18 +765,41 @@ void outputMEventos()
   taskSetTime.Start();
 }
 #pragma endregion
+
 #pragma region Leaving functions
+
+/**
+ * @brief Function that runs when the machine leaves the "Inicio" state
+ * 
+ * This function is executed when the state machine transitions away from the "Inicio" state.
+ * It stops the security task and the melody success task.
+ */
 void leavingInicio()
 {
   taskSecurity.Stop();
   taskMelodySuccess.Stop();
 }
+
+/**
+ * @brief Function that runs when the machine leaves the "Menu" state
+ * 
+ * This function is executed when the state machine transitions away from the "Menu" state.
+ * It stops the menu task and the button reading task, then clears the LCD display.
+ */
 void leavingMenu()
 {
   taskMenu.Stop();
   taskReadButton.Stop();
   lcd.clear();
 }
+
+/**
+ * @brief Function that runs when the machine leaves the "Ambiental" state
+ * 
+ * This function is executed when the state machine transitions away from the "Ambiental" state.
+ * It stops tasks related to button reading, light reading, temperature reading, humidity reading,
+ * LCD printing, temperature and light limit checking, and timer setting. It also clears the LCD display.
+ */
 void leavingAmbiental()
 {
   taskReadButton.Stop();
@@ -728,6 +811,14 @@ void leavingAmbiental()
   taskSetTime.Stop();
   lcd.clear();
 }
+
+/**
+ * @brief Function that runs when the machine leaves the "Bloqueo" state
+ * 
+ * This function is executed when the state machine transitions away from the "Bloqueo" state.
+ * It stops tasks related to setting a timer, playing a failure melody, and the "Bloqueo" state.
+ * It also clears the LCD display and turns off the red LED.
+ */
 void leavingBloqueo()
 {
   lcd.clear();
@@ -736,6 +827,14 @@ void leavingBloqueo()
   taskBloqueo.Stop();
   digitalWrite(LED_RED, LOW);
 }
+
+/**
+ * @brief Function that runs when the machine leaves the "Alarma" state
+ * 
+ * This function is executed when the state machine transitions away from the "Alarma" state.
+ * It stops tasks related to playing a melody, turning on a blue light, and setting a timer.
+ * It also clears the LCD display and turns off the blue LED.
+ */
 void leavingAlarma()
 {
   lcd.clear();
@@ -744,6 +843,14 @@ void leavingAlarma()
   digitalWrite(LED_BLUE, LOW);
   taskSetTime.Stop();
 }
+
+/**
+ * @brief Function that runs when the machine leaves the "Eventos" state
+ * 
+ * This function is executed when the state machine transitions away from the "Eventos" state.
+ * It stops tasks related to reading button inputs, reading the hall sensor, printing hall sensor
+ * values to the LCD, checking hall sensor limits, and setting a timer.
+ */
 void leavingEventos()
 {
   taskReadButton.Stop();
@@ -752,6 +859,7 @@ void leavingEventos()
   taskHallLimits.Stop();
   taskSetTime.Stop();
 }
+
 #pragma endregion
 #pragma region Functions in Inicio state
 void seguridad()
@@ -833,14 +941,32 @@ void claCorrecta()
 }
 #pragma endregion
 #pragma region Reading sensors
+/**
+ * @brief Reads the light sensor value
+ * 
+ * This function reads the value from the light sensor connected to pinLight and stores it in valueLight.
+ */
 void readLight()
 {
   valueLight = analogRead(pinLight);
 }
+
+/**
+ * @brief Reads the hall effect sensor value
+ * 
+ * This function reads the value from the hall effect sensor connected to pinHall and stores it in valueHall.
+ */
 void readHall()
 {
   valueHall = analogRead(pinHall);
 }
+
+/**
+ * @brief Reads the temperature from the DHT sensor
+ * 
+ * This function reads the temperature value from the DHT sensor and stores it in temp.
+ * If the reading fails, it prints an error message to the serial monitor.
+ */
 void readTemp()
 {
   temp = dht.readTemperature();
@@ -849,20 +975,41 @@ void readTemp()
     Serial.println("Failed to read temperature");
   }
 }
+
+/**
+ * @brief Reads the humidity from the DHT sensor
+ * 
+ * This function reads the humidity value from the DHT sensor and stores it in hum.
+ * If the reading fails, it prints an error message to the serial monitor.
+ */
 void readHum()
 {
   hum = dht.readHumidity();
   if (isnan(hum))
   {
-    Serial.println("Failed to read temperature");
+    Serial.println("Failed to read humidity");
   }
 }
 #pragma endregion
+
 #pragma region General tasks
+
+/**
+ * @brief Reads the current time
+ * 
+ * This function sets the input to the current time.
+ */
 void readTime(void)
 {
   input = Input::time;
 }
+
+/**
+ * @brief Reads the button state
+ * 
+ * This function checks if the button connected to BUTTON_PIN is pressed.
+ * If the button is pressed, it sets the input to a button press.
+ */
 void readButton()
 {
   if (digitalRead(BUTTON_PIN) == HIGH)
@@ -871,7 +1018,14 @@ void readButton()
   }
 }
 #pragma endregion
+
 #pragma region Printing on LCD
+
+/**
+ * @brief Prints sensor values on the LCD
+ * 
+ * This function clears the LCD and prints the temperature, humidity, and light sensor values.
+ */
 void printSensorsLcd()
 {
   // Print temperature
@@ -887,8 +1041,14 @@ void printSensorsLcd()
   lcd.setCursor(0, 1);
   lcd.print("LUZ:");
   lcd.print(valueLight);
-  // Print Mag
+  // Print Mag (not implemented in this function)
 }
+
+/**
+ * @brief Prints hall sensor value on the LCD
+ * 
+ * This function clears the LCD and prints the hall sensor value.
+ */
 void printHallLcd()
 {
   // Print hall
@@ -898,7 +1058,15 @@ void printHallLcd()
   lcd.print(valueHall);
 }
 #pragma endregion
+
 #pragma region Limits
+
+/**
+ * @brief Verifies temperature and light limits
+ * 
+ * This function checks if the temperature exceeds tempHigh and humidity exceeds humHigh.
+ * If both limits are exceeded, it sets the input to indicate that the limits have been exceeded.
+ */
 void verifyTempLightLimits()
 {
   if (temp > tempHigh && hum > humHigh)
@@ -906,6 +1074,13 @@ void verifyTempLightLimits()
     input = Input::tempLightExceeded;
   }
 }
+
+/**
+ * @brief Verifies hall sensor limit
+ * 
+ * This function checks if the hall sensor value exceeds hallHigh.
+ * If the limit is exceeded, it sets the input to indicate that the limit has been exceeded.
+ */
 void verifyHallLimit()
 {
   if (valueHall > hallHigh)
@@ -915,6 +1090,11 @@ void verifyHallLimit()
 }
 #pragma endregion
 
+/**
+ * @brief Activates the blue light alarm
+ * 
+ * This function clears the LCD, prints an alarm message, and turns on the blue LED.
+ */
 void readBluelight()
 {
   lcd.clear();
@@ -922,7 +1102,15 @@ void readBluelight()
   lcd.print("ALARMA ACTIVADA:");
   digitalWrite(LED_BLUE, HIGH);
 }
+
 #pragma region Menu
+
+/**
+ * @brief Handles menu navigation and actions
+ * 
+ * This function reads key presses from a keypad and performs actions based on the key pressed.
+ * It navigates through the menu screens and calls associated functions for each menu item.
+ */
 void Menu()
 {
   char key = keypad.getKey();
@@ -959,6 +1147,11 @@ void Menu()
 }
 #pragma endregion 
 #pragma region Melodies
+/**
+ * @brief Plays a generic melody.
+ * 
+ * This function plays a generic melody using a buzzer.
+ */
 void melodyExecutable()
 {
 
@@ -972,6 +1165,11 @@ void melodyExecutable()
     noTone(buzzer);             // Asegurar que el buzzer esté apagado
   }
 }
+/**
+ * @brief Plays a failure melody.
+ * 
+ * This function plays a specific melody to indicate a failure.
+ */
 void failMelody()
 {
   int melody[] = {
@@ -1017,6 +1215,12 @@ void failMelody()
     noTone(buzzer);
   }
 }
+
+/**
+ * @brief Plays a success melody.
+ * 
+ * This function plays a success melody using a buzzer.
+ */
 void successMelody()
 {
   int *melody = blockedMelody;
