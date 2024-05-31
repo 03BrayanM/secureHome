@@ -862,6 +862,12 @@ void leavingEventos()
 
 #pragma endregion
 #pragma region Functions in Inicio state
+/**
+ * @brief Security function for entering a password.
+ * 
+ * This function prompts the user to enter a password using a keypad.
+ * After three failed attempts, it blocks the system.
+ */
 void seguridad()
 {
 
@@ -909,6 +915,12 @@ void seguridad()
   }
   input = Input::systemBlock;
 }
+/**
+ * @brief Compares two character arrays.
+ * 
+ * This function compares two character arrays of a specified length.
+ * Returns true if the arrays are identical, otherwise false.
+ */
 bool comparar(char vector1[], char vector2[], int longitud)
 {
   for (int i = 0; i < longitud; i++)
@@ -920,6 +932,11 @@ bool comparar(char vector1[], char vector2[], int longitud)
   }
   return true;
 }
+/**
+ * @brief Function called when the system is blocked due to too many failed attempts.
+ * 
+ * This function indicates that the system is blocked and activates the red LED.
+ */
 void sisBloqueado()
 {
   Serial.println("SystemBlock");
@@ -928,6 +945,12 @@ void sisBloqueado()
   delay(5000);
   Input::time;
 }
+/**
+ * @brief Function called when the correct password is entered.
+ * 
+ * This function indicates that the correct password is entered, activates the green LED,
+ * and plays a success melody.
+ */
 void claCorrecta()
 {
   lcd.clear();
