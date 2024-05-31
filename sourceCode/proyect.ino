@@ -191,13 +191,6 @@ int counter = -1;
 char tryCounter = 0;
 #pragma endregion
 #pragma region Configuration for the State Machine
-#pragma region Methods
-void leavingAmbiental(void);
-void leavingEventos(void);
-void leavingAlarma(void);
-void leavingMenu(void);
-void leavingInicio(void);
-#pragma endregion
 // State Alias
 enum State
 {
@@ -281,14 +274,50 @@ void setupStateMachine()
 #pragma endregion
 #pragma region Tasks
 #pragma region Methods
+/**
+ * @brief Function that reads the light from the photoresistor
+ * 
+ */
 void readLight(void);
+/**
+ * @brief Function that reads the temperature from the DHT
+ * 
+ */
 void readTemp(void);
+/**
+ * @brief Function that reads the humidity from the DHT
+ * 
+ */
 void readHum(void);
+/**
+ * @brief Function that changes the input to "time" when it ends
+ * 
+ */
 void readTime(void);
+/**
+ * @brief Function that reads the magnetic field from the Hall sensor
+ * 
+ */
 void readHall(void);
+/**
+ * @brief Fuction that prints sensor informations(Light,temp,hum) on the LCD
+ * 
+ */
 void printSensorsLcd(void);
+/**
+ * @brief Function that prints sensor informations(Magnetic field) on the LCD
+ * 
+ */
 void printHallLcd(void);
+/**
+ * @brief Function that verifies sensors limits values (Light,temp)
+ * 
+ */
 void verifyTempLightLimits(void);
+/**
+ * @brief Function that verifies sensors limits values (Magnetic field)
+ * 
+ */
 void verifyHallLimit(void);
 void readBluelight(void);
 void melodyExecutable(void);
@@ -557,6 +586,10 @@ void loop()
 }
 
 #pragma region Entering functions
+/**
+ * @brief Function that runs when the machine enter to "Incio" state
+ * 
+ */
 void outputInicio()
 {
   Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
@@ -566,6 +599,10 @@ void outputInicio()
   counter = -1;
   taskSecurity.Start();
 }
+/**
+ * @brief Function that runs when the machine enter to "Menu" state
+ * 
+ */
 void outputMenu()
 {
   Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
@@ -575,6 +612,10 @@ void outputMenu()
   taskMenu.Start();
   taskReadButton.Start();
 }
+/**
+ * @brief Function that runs when the machine enter to "Monitor Ambiental" state
+ * 
+ */
 void outputMAmbiental()
 {
   Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
@@ -589,6 +630,10 @@ void outputMAmbiental()
   taskSetTime.SetIntervalMillis(7000);
   taskSetTime.Start();
 }
+/**
+ * @brief Function that runs when the machine enter to "Bloqueo" state
+ * 
+ */
 void outputBloqueo()
 {
   Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
@@ -599,6 +644,10 @@ void outputBloqueo()
   taskBloqueo.Start();
   taskMelodyFail.Start();
 }
+/**
+ * @brief Function that runs when the machine enter to "Alarma" state
+ * 
+ */
 void outputAlarma()
 {
   Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
@@ -610,6 +659,10 @@ void outputAlarma()
   taskSetTime.Start();
   taskReadButton.Start();
 }
+/**
+ * @brief Function that runs when the machine enter to "Monitor Eventos" state
+ * 
+ */
 void outputMEventos()
 {
   Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
@@ -832,6 +885,7 @@ void verifyHallLimit()
   }
 }
 #pragma endregion
+
 void readBluelight()
 {
   lcd.clear();
