@@ -163,9 +163,9 @@ int BloqueoMelody[] = {
     0, NOTE_C7, NOTE_E7, 0,
     NOTE_G7, 0, 0, 0};
 int correctDurations[] = {
-    300, 300, 300, 300,
-    300, 300, 300, 300,
-    300, 300, 300, 300};
+    200, 200, 200, 200,
+    200, 200, 200, 200,
+    200, 200, 200, 200};
 int correctMelodyLength = sizeof(BloqueoMelody) / sizeof(BloqueoMelody[0]);
 int AlarmMelody[] = {
     NOTE_F3,
@@ -197,13 +197,7 @@ int counter = -1;
 char tryCounter = 0;
 #pragma endregion
 #pragma region Configuration for the State Machine
-#pragma region Methods
-void leavingAmbiental(void);
-void leavingEventos(void);
-void leavingAlarma(void);
-void leavingMenu(void);
-void leavingInicio(void);
-#pragma endregion
+
 // State Alias
 enum State
 {
@@ -316,7 +310,7 @@ AsyncTask taskTempLightLimits(500, true, verifyTempLightLimits);
 AsyncTask taskHallLimits(1000, true, verifyHallLimit);
 AsyncTask taskMenu(100, true, Menu);
 AsyncTask taskBlueLight(400, true, readBluelight);
-AsyncTask taskMelody(800, true, melodyExecutable);
+AsyncTask taskMelody(800, false, melodyExecutable);
 AsyncTask taskReadButton(100, true, readButton);
 AsyncTask taskSecurity(1000, false, seguridad);
 AsyncTask taskMelodyFail(800, false, failMelody);
@@ -366,102 +360,177 @@ LiquidScreen screen6(line11, line12);
 LiquidMenu menu(lcd);
 
 #pragma region Functions for the menu
+/**
+ * @brief Function to increase the maximum temperature value.
+ */
 void increase_tempHigh()
 {
-  tempHigh += 5;
+  if(tempHigh < 50) {
+    tempHigh += 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the maximum temperature value.
+ */
 void decrease_tempHigh()
 {
-  tempHigh -= 5;
+  if(tempHigh > (tempLow + 1)) {
+    tempHigh -= 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the minimum temperature value.
+ */
 void increase_tempLow()
 {
-  tempLow += 5;
+  if((tempLow + 1) < tempHigh) {
+    tempLow += 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the minimum temperature value.
+ */
 void decrease_tempLow()
 {
-  tempLow -= 5;
+  if(tempLow > 0) {
+    tempLow -= 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the maximum light value.
+ */
 void increase_luzHigh()
 {
   luzHigh += 10;
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the maximum light value.
+ */
 void decrease_luzHigh()
 {
-  luzHigh -= 10;
+  if((luzHigh - 10) > luzLow) {
+    luzHigh -= 10;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the minimum light value.
+ */
 void increase_luzLow()
 {
-  luzLow += 10;
+  if((luzLow + 10) < luzHigh) {
+    luzLow += 10;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the minimum light value.
+ */
 void decrease_luzLow()
 {
   luzLow -= 10;
   menu.update();
 }
 
+/**
+ * @brief Function to increase the maximum humidity value.
+ */
 void increase_humHigh()
 {
-  humHigh += 5;
+  if(humHigh < 80) {
+    humHigh += 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the maximum humidity value.
+ */
 void decrease_humHigh()
 {
-  humHigh -= 5;
+  if((humHigh - 1) > humLow) {
+    humHigh -= 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the minimum humidity value.
+ */
 void increase_humLow()
 {
-  humLow += 5;
+  if((humLow + 1) < humHigh) {
+    humLow += 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the minimum humidity value.
+ */
 void decrease_humLow()
 {
-  humLow -= 5;
+  if(humLow > 20) {
+    humLow -= 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the maximum hall value.
+ */
 void increase_hallHigh()
 {
-  hallHigh += 10;
+  hallHigh += 1;
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the maximum hall value.
+ */
 void decrease_hallHigh()
 {
-  hallHigh -= 10;
+  if((hallHigh - 1) > hallLow) {
+    hallHigh -= 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to increase the minimum hall value.
+ */
 void increase_hallLow()
 {
-  hallLow += 10;
+  if((hallLow + 1) < hallHigh) {
+    hallLow += 1;
+  }
   menu.update();
 }
 
+/**
+ * @brief Function to decrease the minimum hall value.
+ */
 void decrease_hallLow()
 {
-  hallLow -= 10;
+  hallLow -= 1;
   menu.update();
 }
 
+/**
+ * @brief Function to reset all values to their default settings.
+ */
 void reset_values()
 {
   tempHigh = 30;
@@ -474,6 +543,12 @@ void reset_values()
   hallLow = 400;
   menu.update();
 }
+/**
+ * @brief Sets up the menu with function attachments and screen additions
+ * 
+ * This function initializes the menu by attaching various functions to specific menu lines
+ * and adding screens to the menu. It also initializes the LED state text.
+ */
 void setupMenu(){
   line1.attach_function(1, increase_tempHigh);
   line1.attach_function(2, decrease_tempHigh);
@@ -610,11 +685,11 @@ void outputAlarma()
   Serial.println("Inicio   Menu   Ambiental   Bloqueo   Alarma   Eventos");
   Serial.println("                                         X            ");
   Serial.println();
+  taskReadButton.Start();
   taskMelody.Start();
   taskBlueLight.Start();
   taskSetTime.SetIntervalMillis(4000);
   taskSetTime.Start();
-  taskReadButton.Start();
 }
 void outputMEventos()
 {
