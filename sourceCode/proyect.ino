@@ -389,28 +389,43 @@ LiquidScreen screen6(line11, line12);
 LiquidMenu menu(lcd);
 
 #pragma region Functions for the menu
+/**
+ * @brief fuction for increase value to the maximum temperature 
+ * 
+ */
 void increase_tempHigh()
 {
-  tempHigh += 5;
+  if(tempHigh<50){
+  tempHigh += 1;
+  }
   menu.update();
 }
-
+/**
+ * @brief fuction for decrease value to the minimum temperature 
+ * 
+ */
 void decrease_tempHigh()
 {
-  tempHigh -= 5;
+  if(tempHigh>(tempLow+1)){
+  tempHigh -= 1;
+  }
   menu.update();
 }
 
 void increase_tempLow()
 {
-  tempLow += 5;
+  if((tempLow+1)<tempHigh){
+  tempLow += 1;
+  }
   menu.update();
 }
 
 void decrease_tempLow()
 {
-  tempLow -= 5;
-  menu.update();
+  if(tempLow>0){
+  tempLow -= 1;
+   }
+    menu.update();
 }
 
 void increase_luzHigh()
@@ -421,14 +436,17 @@ void increase_luzHigh()
 
 void decrease_luzHigh()
 {
+  if((luzHigh+10)>luzLow)
   luzHigh -= 10;
   menu.update();
 }
 
 void increase_luzLow()
 {
+  if((luzLow+10)<luzHigh){
   luzLow += 10;
-  menu.update();
+   }
+    menu.update();
 }
 
 void decrease_luzLow()
@@ -439,25 +457,33 @@ void decrease_luzLow()
 
 void increase_humHigh()
 {
-  humHigh += 5;
+  if(humHigh<80){
+  humHigh += 1;
+  }
   menu.update();
 }
 
 void decrease_humHigh()
 {
+  if((humHigh+1)>humLow){
   humHigh -= 1;
+  }
   menu.update();
 }
 
 void increase_humLow()
 {
+  if((humLow+1)<humHigh){
   humLow += 1;
+  }
   menu.update();
 }
 
 void decrease_humLow()
 {
+  if(humLow>20){
   humLow -= 1;
+ }
   menu.update();
 }
 
@@ -469,14 +495,17 @@ void increase_hallHigh()
 
 void decrease_hallHigh()
 {
+  if((hallHigh+1)>hallLow){
   hallHigh -= 1;
-  menu.update();
+   }
+    menu.update();
 }
 
 void increase_hallLow()
 {
+  if((hallLow+1)<hallHigh){
   hallLow += 1;
-  menu.update();
+ } menu.update();
 }
 
 void decrease_hallLow()
