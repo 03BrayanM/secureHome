@@ -1,3 +1,12 @@
+/**
+ * @file main.ino
+ * @brief Monitoring and security system using Arduino.
+ * 
+ * This file contains the main code for a monitoring and security system
+ * that uses an LCD, keypad, LEDs, light sensors, temperature and humidity sensors, and a Hall sensor.
+ * It also includes a menu system for setting limits and a state machine system.
+ */
+
 #include "StateMachineLib.h"
 // include the library code:
 #include <LiquidCrystal.h>
@@ -7,6 +16,7 @@
 #include "AsyncTaskLib.h"
 #include "DHT.h"
 
+// Pin declarations and hardware configuration
 #pragma region LCD configuration
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
@@ -26,6 +36,7 @@ byte colPins[COLS] = {30, 32, 34, 36}; // connect to the column pinouts of the k
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 #pragma endregion
+
 #pragma region Configuration for the leds
 #define LED_RED 10
 #define LED_GREEN 9
@@ -34,9 +45,11 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 #pragma region Button configuration
 #define BUTTON_PIN 6
 #pragma endregion
+
 #pragma region Configuration for the Buzzer
 int buzzer = 7;
 #pragma endregion
+
 #pragma region Configuration for the sensors
 // Light
 const int pinLight = A0;
@@ -62,6 +75,7 @@ int humLow = 30;
 int hallHigh = 800;
 int hallLow = 400;
 #pragma endregion
+
 #pragma Buzzer notes
 #define NOTE_B0 31
 #define NOTE_C1 33
@@ -279,7 +293,7 @@ void setupStateMachine()
   stateMachine.SetOnLeaving(MonitorEventos, leavingEventos);
 }
 #pragma endregion
-#pragma region Tasks
+
 #pragma region Methods
 void readLight(void);
 void readTemp(void);
@@ -299,6 +313,8 @@ void failMelody(void);
 void successMelody(void);
 void sisBloqueado(void);
 #pragma endregion
+
+#pragma region Tasks
 AsyncTask taskReadLight(1000, true, readLight);
 AsyncTask taskReadTemp(1000, true, readTemp);
 AsyncTask taskReadHum(1000, true, readHum);
@@ -584,6 +600,10 @@ void setupMenu(){
 #pragma endregion
 #pragma endregion
 
+/**
+ * @brief Initial system configuration.
+ */
+
 void setup()
 {
   Serial.begin(9600); // Simulator 115200
@@ -607,6 +627,10 @@ void setup()
   // Initial state
   stateMachine.SetState(Inicio, false, true);
 }
+
+/**
+ * @brief Main system loop.
+ */
 
 void loop()
 {
@@ -704,7 +728,7 @@ void outputMEventos()
   taskSetTime.Start();
 }
 #pragma endregion
-#pragma region Leaving functions
+#pragma region Leaving States
 void leavingInicio()
 {
   taskSecurity.Stop();
@@ -753,7 +777,13 @@ void leavingEventos()
   taskSetTime.Stop();
 }
 #pragma endregion
+
 #pragma region Functions in Inicio state
+
+/**
+ * @brief Handles reading the password entered by the user.
+ */
+ 
 void seguridad()
 {
   long startTime = 0;
@@ -815,6 +845,11 @@ void seguridad()
   }
   input = Input::systemBlock;
 }
+
+/**
+ * @brief Compare char vectors
+ */
+
 bool comparar(char vector1[], char vector2[], int longitud)
 {
   for (int i = 0; i < longitud; i++)
@@ -826,6 +861,11 @@ bool comparar(char vector1[], char vector2[], int longitud)
   }
   return true;
 }
+
+/**
+ * @brief System blocked function
+ */
+
 void sisBloqueado()
 {
   Serial.println("SystemBlock");
@@ -833,6 +873,11 @@ void sisBloqueado()
   digitalWrite(LED_RED, HIGH);
   Input::time;
 }
+
+/**
+ * @brief Visual function for correct password
+ */
+
 void claCorrecta()
 {
   lcd.clear();
@@ -845,14 +890,26 @@ void claCorrecta()
 }
 #pragma endregion
 #pragma region Reading sensors
+
+/**
+ * @brief Read photoresistor sensor
+ */
 void readLight()
 {
   valueLight = analogRead(pinLight);
 }
+
+/**
+ * @brief Read hall sensor
+ */
 void readHall()
 {
   valueHall = analogRead(pinHall);
 }
+
+/**
+ * @brief Read temp from DHT sensor
+ */
 void readTemp()
 {
   temp = dht.readTemperature();
@@ -861,6 +918,10 @@ void readTemp()
     Serial.println("Failed to read temperature");
   }
 }
+
+/**
+ * @brief Read humedity from DHT sensor
+ */
 void readHum()
 {
   hum = dht.readHumidity();
@@ -876,6 +937,10 @@ void readTime(void)
   input = Input::time;
   taskSetTime.Stop();
 }
+
+/**
+ * @brief Read button input
+ */
 void readButton()
 {
   if (digitalRead(BUTTON_PIN) == LOW)
@@ -885,33 +950,43 @@ void readButton()
 }
 #pragma endregion
 #pragma region Printing on LCD
+/**
+ * @brief Prints the sensor values on the LCD screen.
+ * 
+ * This function clears the LCD screen and prints the temperature, humidity, and light sensor values.
+ */
 void printSensorsLcd()
 {
-  // Print temperature
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("TEM:");
   lcd.print(temp);
-  // Print humidity
   lcd.setCursor(8, 0);
   lcd.print("HUM:");
   lcd.print(hum);
-  // Print light
   lcd.setCursor(0, 1);
   lcd.print("LUZ:");
   lcd.print(valueLight);
-  // Print Mag
 }
+
+/**
+ * @brief Prints the hall sensor value on the LCD screen.
+ * 
+ * This function clears the LCD screen and prints the hall sensor value.
+ */
 void printHallLcd()
 {
-  // Print hall
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("MAG:");
   lcd.print(valueHall);
 }
-#pragma endregion
-#pragma region Limits
+
+/**
+ * @brief Verifies if the temperature and humidity limits are exceeded.
+ * 
+ * This function checks if the current temperature and humidity exceed predefined limits and sets the input state accordingly.
+ */
 void verifyTempLightLimits()
 {
   if (temp > tempHigh && hum > humHigh)
@@ -919,6 +994,12 @@ void verifyTempLightLimits()
     input = Input::tempLightExceeded;
   }
 }
+
+/**
+ * @brief Verifies if the hall sensor limit is exceeded.
+ * 
+ * This function checks if the current hall sensor value exceeds a predefined limit and sets the input state accordingly.
+ */
 void verifyHallLimit()
 {
   if (valueHall > hallHigh)
@@ -926,7 +1007,12 @@ void verifyHallLimit()
     input = Input::hallExceeded;
   }
 }
-#pragma endregion
+
+/**
+ * @brief Activates the blue light and displays an alarm message on the LCD screen.
+ * 
+ * This function clears the LCD screen, displays an alarm message, and turns on the blue LED.
+ */
 void readBluelight()
 {
   lcd.clear();
@@ -934,7 +1020,13 @@ void readBluelight()
   lcd.print("ALARMA ACTIVADA:");
   digitalWrite(LED_BLUE, HIGH);
 }
-#pragma region Menu
+
+/**
+ * @brief Handles the menu navigation and interaction.
+ * 
+ * This function reads the key pressed on the keypad and performs the corresponding action
+ * such as navigating the menu or calling a specific function.
+ */
 void Menu()
 {
   char key = keypad.getKey();
@@ -969,21 +1061,30 @@ void Menu()
     }
   }
 }
-#pragma endregion 
-#pragma region Melodies
+
+/**
+ * @brief Plays the melody for a successful operation.
+ * 
+ * This function plays a series of tones on the buzzer representing a success melody.
+ */
 void melodyExecutable()
 {
-
   int *melody = AlarmMelody;
   int *durations = correctDurations;
   int length = correctMelodyLength;
   for (int i = 0; i < length; i++)
   {
     tone(buzzer, melody[i], durations[i]);
-    delay(durations[i] * 1.20); // Delay entre notas
-    noTone(buzzer);             // Asegurar que el buzzer esté apagado
+    delay(durations[i] * 1.20); // Delay between notes
+    noTone(buzzer);             // Ensure the buzzer is off
   }
 }
+
+/**
+ * @brief Plays the melody for a failed operation.
+ * 
+ * This function plays a series of tones on the buzzer representing a failure melody.
+ */
 void failMelody()
 {
   int *melody = wrongMelody;
@@ -992,10 +1093,16 @@ void failMelody()
   for (int i = 0; i < length; i++)
   {
     tone(buzzer, melody[i], durations[i]);
-    delay(durations[i] * 1.20); // Delay entre notas
-    noTone(buzzer);             // Asegurar que el buzzer esté apagado
+    delay(durations[i] * 1.20); // Delay between notes
+    noTone(buzzer);             // Ensure the buzzer is off
   }
 }
+
+/**
+ * @brief Plays the melody for a successful operation.
+ * 
+ * This function plays a series of tones on the buzzer representing a success melody.
+ */
 void successMelody()
 {
   int *melody = rightMelody;
@@ -1004,8 +1111,8 @@ void successMelody()
   for (int i = 0; i < length; i++)
   {
     tone(buzzer, melody[i], durations[i]);
-    delay(durations[i] * 1.20); // Delay entre notas
-    noTone(buzzer);             // Asegurar que el buzzer esté apagado
+    delay(durations[i] * 1.20); // Delay between notes
+    noTone(buzzer);             // Ensure the buzzer is off
   }
 }
 #pragma endregion
